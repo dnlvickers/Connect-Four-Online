@@ -1,32 +1,39 @@
+//required for runnngin the server
 const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
-//const Connect4Game = require('./connect-game');
 
+//create the app to use express, and find static files
 const app = express();
 const clientPath  = __dirname+'/../client';
 console.log('Serving static from '+clientPath)
 
+//wrap app into server and in socket.io
 app.use(express.static(clientPath));
 const server = http.createServer(app);
 const io = socketio(server);
 
+//define global as the waiting player for a game
 let waitingPlayer=null;
 
 io.on('connection', function(sock){
+	//handshake with the static page
 	sock.emit('message','You connected');
 	console.log('Someone connected');
 
+	//if the waiting player is defined, then begin a match
 	if (waitingPlayer) {
 		console.log('Starting Game');
 		new Connect4Game(waitingPlayer,sock);
 		waitingPlayer = null;
 
+		//otherwise set this new player as the waiting player
 	} else {
 		waitingPlayer = sock;
 		sock.emit('message','Waiting for opponent');
 	}
 
+	//on disconnect, if the disconnect was the waiting player, reset waiting player
 	sock.on('disconnect',function(){
 		if (sock==waitingPlayer) {
 			waitingPlayer = null;
@@ -34,17 +41,20 @@ io.on('connection', function(sock){
 	})
 })
 
+//error message from server
 server.on('error', function(err){
 	console.error('Server error:',err);
 });
 
+//port to listen for server
 server.listen(8080, function() {
 	console.log('Program Init on 8080');
 });
 
-
+//class to create and run an instance of the game
 class Connect4Game {
 	constructor(player1,player2) {
+		//necessary constructor elements for the game
 		this._players=[player1,player2];
 		this._board=this.new_board();
 		this._players.forEach(s => s.emit('message','Opponent found'));
@@ -56,6 +66,7 @@ class Connect4Game {
 		//check for player inputs
 		this._players.forEach((player,ind) => {
 			player.on('move',(col) => {
+				//if the game is still running, try making the move the player makes
 				if(!this._over){
 					this.make_move(player,ind,col);
 				}
@@ -63,6 +74,7 @@ class Connect4Game {
 		})
 	}
 
+	//generate the server-side game board
 	new_board(){
 		var board = [];
 		for (var i = 0; i < 7; i++) {
@@ -80,8 +92,12 @@ class Connect4Game {
 		if (ind == this._turn%2.0) {
 			//check that the column is not full
 			if (this._board[col][5]==2) {
+				//if not full, add piece to the column
 				this.add_piece(col);
+				//send updates to board
 				this._players.forEach(s => s.emit('board',this._board));
+
+				//if game is not over, let the players know whose turn it is
 				if (!this._over) {
 					player.emit('message','You made a move')
 					this._players[this._turn % 2].emit('message','Your turn');
@@ -95,7 +111,7 @@ class Connect4Game {
 	}
 
 	add_piece(col){
-		//iterate throgh the board and add piece to first empty square
+		//iterate throgh the board and add piece to first empty slot
 		for (var i = 0; i < this._board[col].length; i++) {
 			if (this._board[col][i] == 2){
 				this._board[col][i] = this._turn % 2;
