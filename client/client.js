@@ -1,15 +1,16 @@
+//globals required on cliend stide
 const sock = io();
 var canvas,ctx;
 var gameBoard = [];
 
-//load ub game board on start
+//load in the game board on start of page
 document.addEventListener('DOMContentLoaded',function(){
 	canvas=document.getElementById('gameCanvas');
 	ctx = canvas.getContext('2d');
 	generate_board();
 });
 
-//handles sending text to player when server sends a message
+//handles writing messages from server and sending to player
 function writeEvent(text) {
 	const parent = document.querySelector('#events');
 	parent.innerHTML = text;
@@ -19,17 +20,17 @@ sock.on('message',function(text){
 	writeEvent(text);
 });
 
-//handles updating the game board when the server changes it
-sock.on('board',function(serverBoard){
-	for (var i = 0; i < serverBoard.length; i++) {
-		for (var j = 0; j < serverBoard[i].length; j++) {
-			gameBoard[i][j].type = serverBoard[i][j];
+//handles recieving server side game board and updating the client side game board
+sock.on('board',function(board){
+	for (var i = 0; i < board.length; i++) {
+		for (var j = 0; j < board[i].length; j++) {
+			gameBoard[i][j].type = board[i][j];
 			gameBoard[i][j].draw();
 		}
 	}
 });
 
-//handles selecting the column the player wants to put a piece in
+//handles selecting the colummn the player wants to add a piece to
 function mouse_down(event) {
 	const column_width = Math.floor(canvas.width/7.0);
 	const column = Math.floor(event.layerX/column_width);
@@ -37,7 +38,7 @@ function mouse_down(event) {
 	sock.emit('move',column);
 }
 
-//class used for convenient drawing of circles
+//class to handle convenient drawing of game pieces
 class Circle {
 	constructor (x = 0, y = 0, radius = 50, type = 0) {
 		this.x = Number(x);
@@ -47,7 +48,6 @@ class Circle {
 	}
 	draw() {
 		ctx.beginPath();
-		//decodes values sent from server into piece colors
 		if (this.type == 2) {
 			ctx.fillStyle = 'white';	
 		} else if (this.type == 0) {
@@ -64,7 +64,7 @@ class Circle {
 
 }
 
-//function which actually generates game board
+//handles creation of game board
 function generate_board() {
 	//draw background bue color
 	ctx.beginPath();
