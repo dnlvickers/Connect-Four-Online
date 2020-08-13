@@ -150,20 +150,6 @@ class Connect4Game {
 							this._winner = pieceValue;
 						}
 					}
-					if (col > 2) {
-						//if horizontal left
-						if (pieceValue == this._board[col-1][row] && pieceValue == this._board[col-2][row] && pieceValue == this._board[col-3][row]) {
-							this._winner = pieceValue;
-						} else if (row < 3) {
-							//if diagonal up-left
-							if (pieceValue == this._board[col-1][row+1] && pieceValue == this._board[col-2][row+2] && pieceValue == this._board[col-3][row+3]) {
-								this._winner = pieceValue;
-							}
-							//if diagonal down-left
-						} else if (pieceValue == this._board[col-1][row-1] && pieceValue == this._board[col-2][row-2] && pieceValue == this._board[col-3][row-3]) {
-							this._winner = pieceValue;
-						}
-					}
 				}
 			}
 		}
