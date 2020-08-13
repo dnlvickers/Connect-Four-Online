@@ -129,7 +129,7 @@ class Connect4Game {
 		for (var col = 0; col < 7; col++) {
 			for (var row = 0; row < 6; row++) {
 				//only player who can win is the one who makes the move. 
-				if (pieceValue == this._board[row][col]) {}
+				if (pieceValue == this._board[col][row]) {
 					//if vertical row
 					if (row > 2) {
 						if (pieceValue == this._board[col][row-1] && pieceValue == this._board[col][row-2] && pieceValue == this._board[col][row-3]) {
@@ -164,6 +164,7 @@ class Connect4Game {
 							this._winner = pieceValue;
 						}
 					}
+				}
 			}
 		}
 		
